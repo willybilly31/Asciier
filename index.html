@@ -7,6 +7,7 @@
 
     <title>ASCIIER.</title>
     <link rel="icon" href="Favicon.png" type="image/x-icon"/>
+
     <style>
 
         * {
@@ -18,13 +19,14 @@
             color: white;
             margin: 0;
             font-family: 'Times New Roman', Times, serif;
+            overflow: hidden;
         }
-
-        /* TOP SECTION */
 
         .header {
             text-align: center;
             padding-top: 40px;
+            position: relative;
+            z-index: 1;
         }
 
         .title {
@@ -37,24 +39,15 @@
             margin: 0;
         }
 
-
-        /* UPLOAD BUTTON */
-
         .upload {
             display: inline-block;
-
             background: yellow;
             color: black;
-
             padding: 10px 18px;
-
             border-radius: 6px;
-
             font-size: 14px;
             font-weight: bold;
-
             cursor: pointer;
-
             transition: 0.15s;
         }
 
@@ -66,37 +59,29 @@
             display: none;
         }
 
-
-        /* SLIDER */
-
         .slider-container {
             width: 300px;
             max-width: 80%;
-
             margin: 20px auto 30px;
-
             text-align: center;
         }
 
         .slider-label {
             font-size: 12px;
             color: #777;
-
             margin-bottom: 8px;
         }
 
         #width {
             width: 100%;
-
             accent-color: yellow;
-
             cursor: pointer;
         }
 
-
-        /* ASCII OUTPUT */
-
         .ascii-container {
+            position: relative;
+            z-index: 1;
+
             width: 90vw;
             height: 70vh;
 
@@ -124,17 +109,80 @@
             transform-origin: center;
         }
 
-        
+        .ascii-background {
+            position: fixed;
+
+            top: -100vh;
+            left: -100vw;
+
+            width: 300vw;
+            height: 300vh;
+
+            overflow: hidden;
+
+            transform: rotate(-45deg);
+
+            pointer-events: none;
+
+            z-index: 0;
+        }
+
+        .ascii-background-text {
+            position: absolute;
+
+            width: 100%;
+            height: 100%;
+
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.2;
+            letter-spacing: 2px;
+
+            color: yellow;
+            opacity: 0.08;
+
+            white-space: pre;
+
+            animation: asciiMove 8s linear infinite;
+        }
+
+        @keyframes asciiMove {
+            from {
+                transform: translateX(-200px);
+            }
+
+            to {
+                transform: translateX(200px);
+            }
+        }
+
+        #invertButton {
+            margin-left:8px;
+            padding:10px 18px;
+
+            background:yellow;
+            color: black;
+            border: 1px solid yellow;
+            border-radius: 6px;
+
+            font-family:inherit;
+            font-size: 14px;
+            font-weight: bold;
+
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+        #invertButton:hover{
+            background:white;
+            color: black;
+        }
 
     </style>
 
 </head>
 
-
 <body>
-
-
-    <!-- HEADER -->
 
     <div class="header">
 
@@ -142,23 +190,17 @@
             <h1>ASCIIER.</h1>
         </div>
 
-
-        <!-- UPLOAD -->
-
         <label class="upload">
-
             Upload
-
             <input
                 type="file"
                 id="imageInput"
                 accept="image/*"
             >
-
         </label>
 
+            <button id="invertButton">Invert</button>
 
-        <!-- SLIDER -->
 
         <div class="slider-container">
 
@@ -178,22 +220,17 @@
 
     </div>
 
-
-    <!-- ASCII -->
-
     <div class="ascii-container">
-
         <pre id="ascii"></pre>
-
     </div>
-
-
-    <!-- HIDDEN CANVAS -->
 
     <canvas id="canvas" hidden></canvas>
 
-    <div class="ascii-animation">
-        @%#*+=-:. @%#*+=-:. @%#*+=-:. @%#*+=-:.
+    <div class="ascii-background">
+        <div
+            class="ascii-background-text"
+            id="asciiBackground"
+        ></div>
     </div>
 
     <script>
@@ -210,11 +247,10 @@
         const canvas =
             document.getElementById("canvas");
 
+        const background =
+            document.getElementById("asciiBackground");
 
         let image = null;
-
-
-        // Upload image
 
         imageInput.addEventListener("change", () => {
 
@@ -222,54 +258,36 @@
 
             if (!file) return;
 
-
             const reader = new FileReader();
-
 
             reader.onload = (event) => {
 
                 image = new Image();
 
-
                 image.onload = () => {
-
                     generateASCII();
-
                 };
-
 
                 image.src = event.target.result;
 
             };
 
-
             reader.readAsDataURL(file);
 
         });
 
-
-        // Slider
-
         widthSlider.addEventListener("input", () => {
 
             if (image) {
-
                 generateASCII();
-
             }
 
         });
-
-
-        // Generate ASCII
 
         function generateASCII() {
 
             const width =
                 Number(widthSlider.value);
-
-
-            // Keep original image ratio
 
             const height =
                 Math.floor(
@@ -278,16 +296,11 @@
                     0.5
                 );
 
-
             canvas.width = width;
             canvas.height = height;
 
-
             const ctx =
                 canvas.getContext("2d");
-
-
-            // Draw resized image
 
             ctx.drawImage(
                 image,
@@ -297,9 +310,6 @@
                 height
             );
 
-
-            // Get pixels
-
             const pixels =
                 ctx.getImageData(
                     0,
@@ -308,17 +318,10 @@
                     height
                 ).data;
 
-
-            // ASCII characters
-
             const characters =
                 "@%#*+=-:. ";
 
-
             let result = "";
-
-
-            // Convert pixels
 
             for (let y = 0; y < height; y++) {
 
@@ -326,7 +329,6 @@
 
                     const pixel =
                         (y * width + x) * 4;
-
 
                     const r =
                         pixels[pixel];
@@ -337,16 +339,14 @@
                     const b =
                         pixels[pixel + 2];
 
-
-                    // Brightness
-
-                    const brightness =
+                    let brightness =
                         0.299 * r +
                         0.587 * g +
                         0.114 * b;
 
-
-                    // Character
+                    if (inverted) {
+                        brightness = 255 - brightness;
+                    }
 
                     const index =
                         Math.floor(
@@ -354,32 +354,83 @@
                             (characters.length - 1)
                         );
 
-
                     result +=
                         characters[index];
 
                 }
 
-
                 result += "\n";
 
             }
 
-
             ascii.textContent = result;
 
-            const container = document.querySelector(".ascii-container");
+            const container =
+                document.querySelector(".ascii-container");
 
-            const scaleX = container.clientWidth / ascii.scrollWidth;
-            const scaleY = container.clientHeight / ascii.scrollHeight;
+            const scaleX =
+                container.clientWidth /
+                ascii.scrollWidth;
 
-            const scale = Math.min(scaleX, scaleY, 1);
+            const scaleY =
+                container.clientHeight /
+                ascii.scrollHeight;
 
-            ascii.style.transform = `scale(${scale})`;
+            const scale =
+                Math.min(
+                    scaleX,
+                    scaleY,
+                    1
+                );
+
+            ascii.style.transform =
+                `scale(${scale})`;
+
         }
 
+        const chars =
+            "@%#*+=-:. ";
+
+        const rows = 300;
+        const columns = 500;
+
+        let text = "";
+
+        for (let row = 0; row < rows; row++) {
+
+            for (let column = 0; column < columns; column++) {
+
+                text += chars[
+                    Math.floor(
+                        Math.random() *
+                        chars.length
+                    )
+                ];
+
+            }
+
+            text += "\n";
+
+        }
+
+        background.textContent = text;
+
+        const invertButton =
+        document.getElementById("invertButton");
+
+    let inverted = true;
+
+    invertButton.addEventListener("click", () => {
+        inverted = !inverted;
+
+        if (image) {
+            generateASCII();
+        }
+    });
+
+    
     </script>
 
 </body>
 
-</html
+</html>
