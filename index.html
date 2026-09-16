@@ -1,171 +1,293 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>ASCIIER.</title>
-
+    <link rel="icon" href="Favicon.png" type="image/x-icon"/>
     <style>
-        .title {
-            font-size: 20px;
-            color: yellow;
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
             background: black;
+            color: white;
+            margin: 0;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        /* TOP SECTION */
+
+        .header {
+            text-align: center;
+            padding-top: 40px;
+        }
+
+        .title {
+            color: yellow;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .title h1 {
             margin: 0;
         }
 
+
+        /* UPLOAD BUTTON */
+
+        .upload {
+            display: inline-block;
+
+            background: yellow;
+            color: black;
+
+            padding: 10px 18px;
+
+            border-radius: 6px;
+
+            font-size: 14px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.15s;
+        }
+
+        .upload:hover {
+            background: white;
+        }
+
+        .upload input {
+            display: none;
+        }
+
+
+        /* SLIDER */
+
+        .slider-container {
+            width: 300px;
+            max-width: 80%;
+
+            margin: 20px auto 30px;
+
+            text-align: center;
+        }
+
+        .slider-label {
+            font-size: 12px;
+            color: #777;
+
+            margin-bottom: 8px;
+        }
+
+        #width {
+            width: 100%;
+
+            accent-color: yellow;
+
+            cursor: pointer;
+        }
+
+
+        /* ASCII OUTPUT */
+
         .ascii-container {
-            width: fit-content;
-            height: fit-content;
+            width: 90vw;
+            height: 70vh;
+
+            margin: 0 auto;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            overflow: hidden;
         }
 
         #ascii {
             margin: 0;
-            width: fit-content;
-            height: fit-content;
 
-            font-family: "Courier New", monospace;
-            color: yellow;
+            font-family: monospace;
+            color: rgb(255, 255, 200);
 
-            /* Smaller characters */
-            font-size: 5px;
-
-            /* Smaller vertical spacing */
-            line-height: 4px;
-
-            /* Tighter horizontal spacing */
+            font-size: 8px;
+            line-height: 8px;
             letter-spacing: -1px;
 
             white-space: pre;
+
+            transform-origin: center;
         }
 
-        .canvas {
-            border-width: 3px;
-            border-radius: 5px;
-        }
+        
 
-        .Slider {
-            color:yellow;
-        }
-
-        .ascii-frame {
-            width: 100vw;
-            height: 70vh;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            overflow: hidden;
-        }
-        .button {
-            color:yellow;
-        }
     </style>
+
 </head>
+
 
 <body>
 
-    <div class="title">
-        <h1>ASCIIER.</h1>
-    </div>
 
-    <div class="controls">
+    <!-- HEADER -->
 
-        <div class="Button">
-            <input type="file" id="imageInput" accept="image/*">
+    <div class="header">
+
+        <div class="title">
+            <h1>ASCIIER.</h1>
         </div>
 
-        <div class="Slider">
+
+        <!-- UPLOAD -->
+
+        <label class="upload">
+
+            Upload
+
+            <input
+                type="file"
+                id="imageInput"
+                accept="image/*"
+            >
+
+        </label>
+
+
+        <!-- SLIDER -->
+
+        <div class="slider-container">
+
+            <div class="slider-label">
+                Resolution:
+            </div>
+
             <input
                 type="range"
                 id="width"
-                min="30"
-                max="700"
+                min="50"
+                max="800"
                 value="150"
             >
 
-            <span id="widthValue">150</span>
         </div>
 
     </div>
 
-    <div class="ascii-frame">
+
+    <!-- ASCII -->
+
     <div class="ascii-container">
+
         <pre id="ascii"></pre>
+
     </div>
 
-    <div class="Canvas">
-        <canvas id="canvas" hidden></canvas>
+
+    <!-- HIDDEN CANVAS -->
+
+    <canvas id="canvas" hidden></canvas>
+
+    <div class="ascii-animation">
+        @%#*+=-:. @%#*+=-:. @%#*+=-:. @%#*+=-:.
     </div>
 
     <script>
-        const imageInput = document.getElementById("imageInput");
-        const widthSlider = document.getElementById("width");
-        const widthValue = document.getElementById("widthValue");
 
-        const ascii = document.getElementById("ascii");
-        const canvas = document.getElementById("canvas");
+        const imageInput =
+            document.getElementById("imageInput");
+
+        const widthSlider =
+            document.getElementById("width");
+
+        const ascii =
+            document.getElementById("ascii");
+
+        const canvas =
+            document.getElementById("canvas");
+
 
         let image = null;
 
 
         // Upload image
+
         imageInput.addEventListener("change", () => {
 
             const file = imageInput.files[0];
 
             if (!file) return;
 
+
             const reader = new FileReader();
+
 
             reader.onload = (event) => {
 
                 image = new Image();
 
+
                 image.onload = () => {
+
                     generateASCII();
+
                 };
 
+
                 image.src = event.target.result;
+
             };
 
+
             reader.readAsDataURL(file);
+
         });
 
 
-        // Resolution slider
+        // Slider
+
         widthSlider.addEventListener("input", () => {
 
-            widthValue.textContent = widthSlider.value;
-
             if (image) {
+
                 generateASCII();
+
             }
+
         });
 
 
         // Generate ASCII
+
         function generateASCII() {
 
-            const width = Number(widthSlider.value);
+            const width =
+                Number(widthSlider.value);
 
-            // Keep the image's original aspect ratio
-            const height = Math.floor(
-                (image.height / image.width) *
-                width *
-                0.5
-            );
+
+            // Keep original image ratio
+
+            const height =
+                Math.floor(
+                    (image.height / image.width) *
+                    width *
+                    0.5
+                );
 
 
             canvas.width = width;
             canvas.height = height;
 
 
-            const ctx = canvas.getContext("2d");
+            const ctx =
+                canvas.getContext("2d");
+
+
+            // Draw resized image
 
             ctx.drawImage(
                 image,
@@ -176,58 +298,88 @@
             );
 
 
-            const pixels = ctx.getImageData(
-                0,
-                0,
-                width,
-                height
-            ).data;
+            // Get pixels
+
+            const pixels =
+                ctx.getImageData(
+                    0,
+                    0,
+                    width,
+                    height
+                ).data;
 
 
-            // More characters = more detail
-            const characters = "@%#*+=-:. ";
+            // ASCII characters
+
+            const characters =
+                "@%#*+=-:. ";
 
 
             let result = "";
 
 
+            // Convert pixels
+
             for (let y = 0; y < height; y++) {
 
                 for (let x = 0; x < width; x++) {
 
-                    const pixel = (y * width + x) * 4;
+                    const pixel =
+                        (y * width + x) * 4;
 
 
-                    const r = pixels[pixel];
-                    const g = pixels[pixel + 1];
-                    const b = pixels[pixel + 2];
+                    const r =
+                        pixels[pixel];
+
+                    const g =
+                        pixels[pixel + 1];
+
+                    const b =
+                        pixels[pixel + 2];
 
 
-                    // Convert RGB to brightness
+                    // Brightness
+
                     const brightness =
                         0.299 * r +
                         0.587 * g +
                         0.114 * b;
 
 
-                    // Brightness → ASCII character
-                    const index = Math.floor(
-                        (brightness / 255) *
-                        (characters.length - 1)
-                    );
+                    // Character
+
+                    const index =
+                        Math.floor(
+                            (brightness / 255) *
+                            (characters.length - 1)
+                        );
 
 
-                    result += characters[index];
+                    result +=
+                        characters[index];
+
                 }
 
+
                 result += "\n";
+
             }
 
 
             ascii.textContent = result;
+
+            const container = document.querySelector(".ascii-container");
+
+            const scaleX = container.clientWidth / ascii.scrollWidth;
+            const scaleY = container.clientHeight / ascii.scrollHeight;
+
+            const scale = Math.min(scaleX, scaleY, 1);
+
+            ascii.style.transform = `scale(${scale})`;
         }
 
     </script>
 
 </body>
-</html>
+
+</html
