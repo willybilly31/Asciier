@@ -1,23 +1,233 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width", initial-scale="1.0">
-        <title>ASCIIER</title>
-    </head>
-    <body>
-        <div class="app">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-            <h1>ASCIIER.</h1>
-            <p>image to ascii</p>
-            
-            <div class="top">
-                <label class="upload">
-                    upload image
-                </label>
-            </div>
-            
+    <title>ASCIIER.</title>
 
+    <style>
+        .title {
+            font-size: 20px;
+            color: yellow;
+        }
+
+        body {
+            background: black;
+            margin: 0;
+        }
+
+        .ascii-container {
+            width: fit-content;
+            height: fit-content;
+        }
+
+        #ascii {
+            margin: 0;
+            width: fit-content;
+            height: fit-content;
+
+            font-family: "Courier New", monospace;
+            color: yellow;
+
+            /* Smaller characters */
+            font-size: 5px;
+
+            /* Smaller vertical spacing */
+            line-height: 4px;
+
+            /* Tighter horizontal spacing */
+            letter-spacing: -1px;
+
+            white-space: pre;
+        }
+
+        .canvas {
+            border-width: 3px;
+            border-radius: 5px;
+        }
+
+        .Slider {
+            color:yellow;
+        }
+
+        .ascii-frame {
+            width: 100vw;
+            height: 70vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            overflow: hidden;
+        }
+        .button {
+            color:yellow;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="title">
+        <h1>ASCIIER.</h1>
+    </div>
+
+    <div class="controls">
+
+        <div class="Button">
+            <input type="file" id="imageInput" accept="image/*">
         </div>
-    </body>
+
+        <div class="Slider">
+            <input
+                type="range"
+                id="width"
+                min="30"
+                max="700"
+                value="150"
+            >
+
+            <span id="widthValue">150</span>
+        </div>
+
+    </div>
+
+    <div class="ascii-frame">
+    <div class="ascii-container">
+        <pre id="ascii"></pre>
+    </div>
+
+    <div class="Canvas">
+        <canvas id="canvas" hidden></canvas>
+    </div>
+
+    <script>
+        const imageInput = document.getElementById("imageInput");
+        const widthSlider = document.getElementById("width");
+        const widthValue = document.getElementById("widthValue");
+
+        const ascii = document.getElementById("ascii");
+        const canvas = document.getElementById("canvas");
+
+        let image = null;
+
+
+        // Upload image
+        imageInput.addEventListener("change", () => {
+
+            const file = imageInput.files[0];
+
+            if (!file) return;
+
+            const reader = new FileReader();
+
+            reader.onload = (event) => {
+
+                image = new Image();
+
+                image.onload = () => {
+                    generateASCII();
+                };
+
+                image.src = event.target.result;
+            };
+
+            reader.readAsDataURL(file);
+        });
+
+
+        // Resolution slider
+        widthSlider.addEventListener("input", () => {
+
+            widthValue.textContent = widthSlider.value;
+
+            if (image) {
+                generateASCII();
+            }
+        });
+
+
+        // Generate ASCII
+        function generateASCII() {
+
+            const width = Number(widthSlider.value);
+
+            // Keep the image's original aspect ratio
+            const height = Math.floor(
+                (image.height / image.width) *
+                width *
+                0.5
+            );
+
+
+            canvas.width = width;
+            canvas.height = height;
+
+
+            const ctx = canvas.getContext("2d");
+
+            ctx.drawImage(
+                image,
+                0,
+                0,
+                width,
+                height
+            );
+
+
+            const pixels = ctx.getImageData(
+                0,
+                0,
+                width,
+                height
+            ).data;
+
+
+            // More characters = more detail
+            const characters = "@%#*+=-:. ";
+
+
+            let result = "";
+
+
+            for (let y = 0; y < height; y++) {
+
+                for (let x = 0; x < width; x++) {
+
+                    const pixel = (y * width + x) * 4;
+
+
+                    const r = pixels[pixel];
+                    const g = pixels[pixel + 1];
+                    const b = pixels[pixel + 2];
+
+
+                    // Convert RGB to brightness
+                    const brightness =
+                        0.299 * r +
+                        0.587 * g +
+                        0.114 * b;
+
+
+                    // Brightness → ASCII character
+                    const index = Math.floor(
+                        (brightness / 255) *
+                        (characters.length - 1)
+                    );
+
+
+                    result += characters[index];
+                }
+
+                result += "\n";
+            }
+
+
+            ascii.textContent = result;
+        }
+
+    </script>
+
+</body>
 </html>
