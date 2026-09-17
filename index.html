@@ -143,7 +143,7 @@
 
             white-space: pre;
 
-            animation: asciiMove 8s linear infinite;
+            animation: asciiMove 35s linear infinite;
         }
 
         @keyframes asciiMove {
@@ -156,16 +156,17 @@
             }
         }
 
-        #invertButton {
-            margin-left:8px;
-            padding:10px 18px;
+        #invertButton,
+        #exportButton {
+            margin-left: 8px;
+            padding: 10px 18px;
 
-            background:yellow;
+            background: yellow;
             color: black;
             border: 1px solid yellow;
             border-radius: 6px;
 
-            font-family:inherit;
+            font-family: inherit;
             font-size: 14px;
             font-weight: bold;
 
@@ -173,8 +174,9 @@
             transition: 0.15s;
         }
 
-        #invertButton:hover{
-            background:white;
+        #invertButton:hover,
+        #exportButton:hover {
+            background: white;
             color: black;
         }
 
@@ -199,8 +201,13 @@
             >
         </label>
 
-            <button id="invertButton">Invert</button>
+        <button id="invertButton">
+            Invert
+        </button>
 
+        <button id="exportButton">
+            Export PNG
+        </button>
 
         <div class="slider-container">
 
@@ -211,8 +218,8 @@
             <input
                 type="range"
                 id="width"
-                min="50"
-                max="800"
+                min="100"
+                max="1000"
                 value="150"
             >
 
@@ -233,6 +240,7 @@
         ></div>
     </div>
 
+
     <script>
 
         const imageInput =
@@ -250,25 +258,47 @@
         const background =
             document.getElementById("asciiBackground");
 
+        const invertButton =
+            document.getElementById("invertButton");
+
+        const exportButton =
+            document.getElementById("exportButton");
+
+
         let image = null;
+
+        let inverted = true;
+
+
+        /*
+        ========================================
+        IMAGE UPLOAD
+        ========================================
+        */
 
         imageInput.addEventListener("change", () => {
 
-            const file = imageInput.files[0];
+            const file =
+                imageInput.files[0];
 
             if (!file) return;
 
-            const reader = new FileReader();
+            const reader =
+                new FileReader();
 
             reader.onload = (event) => {
 
-                image = new Image();
+                image =
+                    new Image();
 
                 image.onload = () => {
+
                     generateASCII();
+
                 };
 
-                image.src = event.target.result;
+                image.src =
+                    event.target.result;
 
             };
 
@@ -276,18 +306,35 @@
 
         });
 
+
+        /*
+        ========================================
+        RESOLUTION SLIDER
+        ========================================
+        */
+
         widthSlider.addEventListener("input", () => {
 
             if (image) {
+
                 generateASCII();
+
             }
 
         });
+
+
+        /*
+        ========================================
+        GENERATE ASCII
+        ========================================
+        */
 
         function generateASCII() {
 
             const width =
                 Number(widthSlider.value);
+
 
             const height =
                 Math.floor(
@@ -296,11 +343,17 @@
                     0.5
                 );
 
-            canvas.width = width;
-            canvas.height = height;
+
+            canvas.width =
+                width;
+
+            canvas.height =
+                height;
+
 
             const ctx =
                 canvas.getContext("2d");
+
 
             ctx.drawImage(
                 image,
@@ -310,6 +363,7 @@
                 height
             );
 
+
             const pixels =
                 ctx.getImageData(
                     0,
@@ -318,17 +372,29 @@
                     height
                 ).data;
 
+
             const characters =
                 "@%#*+=-:. ";
 
+
             let result = "";
 
-            for (let y = 0; y < height; y++) {
 
-                for (let x = 0; x < width; x++) {
+            for (
+                let y = 0;
+                y < height;
+                y++
+            ) {
+
+                for (
+                    let x = 0;
+                    x < width;
+                    x++
+                ) {
 
                     const pixel =
                         (y * width + x) * 4;
+
 
                     const r =
                         pixels[pixel];
@@ -339,14 +405,20 @@
                     const b =
                         pixels[pixel + 2];
 
+
                     let brightness =
                         0.299 * r +
                         0.587 * g +
                         0.114 * b;
 
+
                     if (inverted) {
-                        brightness = 255 - brightness;
+
+                        brightness =
+                            255 - brightness;
+
                     }
+
 
                     const index =
                         Math.floor(
@@ -354,27 +426,43 @@
                             (characters.length - 1)
                         );
 
+
                     result +=
                         characters[index];
 
                 }
 
+
                 result += "\n";
 
             }
 
-            ascii.textContent = result;
+
+            ascii.textContent =
+                result;
+
+
+            /*
+            ========================================
+            SCALE ASCII TO FIT
+            ========================================
+            */
 
             const container =
-                document.querySelector(".ascii-container");
+                document.querySelector(
+                    ".ascii-container"
+                );
+
 
             const scaleX =
                 container.clientWidth /
                 ascii.scrollWidth;
 
+
             const scaleY =
                 container.clientHeight /
                 ascii.scrollHeight;
+
 
             const scale =
                 Math.min(
@@ -383,29 +471,73 @@
                     1
                 );
 
+
             ascii.style.transform =
                 `scale(${scale})`;
 
         }
 
+
+        /*
+        ========================================
+        INVERT BUTTON
+        ========================================
+        */
+
+        invertButton.addEventListener("click", () => {
+
+            inverted =
+                !inverted;
+
+
+            if (image) {
+
+                generateASCII();
+
+            }
+
+        });
+
+
+        /*
+        ========================================
+        BACKGROUND ASCII
+        ========================================
+        */
+
         const chars =
             "@%#*+=-:. ";
 
-        const rows = 300;
-        const columns = 500;
+
+        const rows =
+            300;
+
+        const columns =
+            500;
+
 
         let text = "";
 
-        for (let row = 0; row < rows; row++) {
 
-            for (let column = 0; column < columns; column++) {
+        for (
+            let row = 0;
+            row < rows;
+            row++
+        ) {
 
-                text += chars[
-                    Math.floor(
-                        Math.random() *
-                        chars.length
-                    )
-                ];
+            for (
+                let column = 0;
+                column < columns;
+                column++
+            ) {
+
+                text +=
+                    chars[
+                        Math.floor(
+                            Math.random() *
+                            chars.length
+                        )
+                    ];
 
             }
 
@@ -413,22 +545,148 @@
 
         }
 
-        background.textContent = text;
 
-        const invertButton =
-        document.getElementById("invertButton");
+        background.textContent =
+            text;
 
-    let inverted = true;
 
-    invertButton.addEventListener("click", () => {
-        inverted = !inverted;
+        /*
+        ========================================
+        EXPORT PNG
+        ========================================
+        */
 
-        if (image) {
-            generateASCII();
-        }
-    });
+        exportButton.addEventListener("click", () => {
 
-    
+            if (!ascii.textContent.trim()) {
+
+                return;
+
+            }
+
+
+            const lines =
+                ascii.textContent.split("\n");
+
+
+            const fontSize =
+                8;
+
+            const lineHeight =
+                8;
+
+            const padding =
+                20;
+
+
+            const exportCanvas =
+                document.createElement(
+                    "canvas"
+                );
+
+
+            const ctx =
+                exportCanvas.getContext(
+                    "2d"
+                );
+
+
+            ctx.font =
+                `${fontSize}px monospace`;
+
+
+            const textWidth =
+                Math.max(
+                    ...lines.map(
+                        line =>
+                            ctx.measureText(
+                                line
+                            ).width
+                    )
+                );
+
+
+            exportCanvas.width =
+                textWidth +
+                padding * 2;
+
+
+            exportCanvas.height =
+                lines.length *
+                lineHeight +
+                padding * 2;
+
+
+            /*
+            Background
+            */
+
+            ctx.fillStyle =
+                "black";
+
+
+            ctx.fillRect(
+                0,
+                0,
+                exportCanvas.width,
+                exportCanvas.height
+            );
+
+
+            /*
+            ASCII text
+            */
+
+            ctx.fillStyle =
+                "rgb(255, 255, 200)";
+
+
+            ctx.font =
+                `${fontSize}px monospace`;
+
+
+            ctx.textBaseline =
+                "top";
+
+
+            lines.forEach(
+                (line, i) => {
+
+                    ctx.fillText(
+                        line,
+                        padding,
+                        padding +
+                        i * lineHeight
+                    );
+
+                }
+            );
+
+
+            /*
+            Download PNG
+            */
+
+            const link =
+                document.createElement(
+                    "a"
+                );
+
+
+            link.download =
+                "asciier.png";
+
+
+            link.href =
+                exportCanvas.toDataURL(
+                    "image/png"
+                );
+
+
+            link.click();
+
+        });
+
     </script>
 
 </body>
