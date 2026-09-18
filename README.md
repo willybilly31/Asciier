@@ -5,7 +5,7 @@ Simple ascii generator. Made with js,css,html. Mainly just a fun short proejct i
 - Image upload
 - Ascii density slider (Resolution)
 - Invert button to invert the colors
-
+- Export to png.
 ## Pics
 
 <img width="881" height="899" alt="image" src="https://github.com/user-attachments/assets/b610491f-e2f8-4302-92ae-f74056cc895e" />
