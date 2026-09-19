@@ -186,6 +186,21 @@
             color: white;
         }
 
+        #customChars{
+            background: black;
+            color: yellow;
+            border: 1px solid yellow;
+            border-radius: 3px;
+            padding: 8px 12px;
+            font-family: monospace;
+            font-size: 14px;
+            width: 200px;
+            text-align: center;
+            outline: none;
+            
+        }
+
+
     </style>
 
 </head>
@@ -215,6 +230,13 @@
         <button id="exportButton">
             Export PNG
         </button>
+
+        <div class="input-container" style="margin-top: 20px;">
+            <div class="slider-label">
+                Custom Characters (Dark to Light):
+            </div>
+            <input type="text" id="customChars" value="@%#*+=-:. ">
+        </div>
 
         <div class="slider-container">
 
@@ -249,451 +271,150 @@
 
 
     <script>
-
-        const imageInput =
-            document.getElementById("imageInput");
-
-        const widthSlider =
-            document.getElementById("width");
-
-        const ascii =
-            document.getElementById("ascii");
-
-        const canvas =
-            document.getElementById("canvas");
-
-        const background =
-            document.getElementById("asciiBackground");
-
-        const invertButton =
-            document.getElementById("invertButton");
-
-        const exportButton =
-            document.getElementById("exportButton");
-
+        const imageInput = document.getElementById("imageInput");
+        const widthSlider = document.getElementById("width");
+        const ascii = document.getElementById("ascii");
+        const canvas = document.getElementById("canvas");
+        const background = document.getElementById("asciiBackground");
+        const invertButton = document.getElementById("invertButton");
+        const exportButton = document.getElementById("exportButton");
+        const customCharsInput = document.getElementById("customChars");
 
         let image = null;
-
         let inverted = true;
 
-
-        /*
-        ========================================
-        IMAGE UPLOAD
-        ========================================
-        */
-
-        imageInput.addEventListener("change", () => {
-
-            const file =
-                imageInput.files[0];
-
+        // Image Upload
+        imageInput.addEventListener("change", (event) => {
+            const file = event.target.files[0];
             if (!file) return;
 
-            const reader =
-                new FileReader();
-
-            reader.onload = (event) => {
-
-                image =
-                    new Image();
-
-                image.onload = () => {
-
-                    generateASCII();
-
-                };
-
-                image.src =
-                    event.target.result;
-
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                image = new Image();
+                image.onload = generateASCII;
+                image.src = e.target.result;
             };
-
             reader.readAsDataURL(file);
-
         });
 
-
-        /*
-        ========================================
-        RESOLUTION SLIDER
-        ========================================
-        */
-
+        // Controls
         widthSlider.addEventListener("input", () => {
-
-            if (image) {
-
-                generateASCII();
-
-            }
-
+            if (image) generateASCII();
         });
-
-
-        /*
-        ========================================
-        GENERATE ASCII
-        ========================================
-        */
-
-        function generateASCII() {
-
-            const width =
-                Number(widthSlider.value);
-
-
-            const height =
-                Math.floor(
-                    (image.height / image.width) *
-                    width *
-                    0.5
-                );
-
-
-            canvas.width =
-                width;
-
-            canvas.height =
-                height;
-
-
-            const ctx =
-                canvas.getContext("2d");
-
-
-            ctx.drawImage(
-                image,
-                0,
-                0,
-                width,
-                height
-            );
-
-
-            const pixels =
-                ctx.getImageData(
-                    0,
-                    0,
-                    width,
-                    height
-                ).data;
-
-
-            const characters =
-                "@%#*+=-:. ";
-
-
-            let result = "";
-
-
-            for (
-                let y = 0;
-                y < height;
-                y++
-            ) {
-
-                for (
-                    let x = 0;
-                    x < width;
-                    x++
-                ) {
-
-                    const pixel =
-                        (y * width + x) * 4;
-
-
-                    const r =
-                        pixels[pixel];
-
-                    const g =
-                        pixels[pixel + 1];
-
-                    const b =
-                        pixels[pixel + 2];
-
-
-                    let brightness =
-                        0.299 * r +
-                        0.587 * g +
-                        0.114 * b;
-
-
-                    if (inverted) {
-
-                        brightness =
-                            255 - brightness;
-
-                    }
-
-
-                    const index =
-                        Math.floor(
-                            (brightness / 255) *
-                            (characters.length - 1)
-                        );
-
-
-                    result +=
-                        characters[index];
-
-                }
-
-
-                result += "\n";
-
-            }
-
-
-            ascii.textContent =
-                result;
-
-
-            /*
-            ========================================
-            SCALE ASCII TO FIT
-            ========================================
-            */
-
-            const container =
-                document.querySelector(
-                    ".ascii-container"
-                );
-
-
-            const scaleX =
-                container.clientWidth /
-                ascii.scrollWidth;
-
-
-            const scaleY =
-                container.clientHeight /
-                ascii.scrollHeight;
-
-
-            const scale =
-                Math.min(
-                    scaleX,
-                    scaleY,
-                    1
-                );
-
-
-            ascii.style.transform =
-                `scale(${scale})`;
-
-        }
-
-
-        /*
-        ========================================
-        INVERT BUTTON
-        ========================================
-        */
 
         invertButton.addEventListener("click", () => {
-
-            inverted =
-                !inverted;
-
-
-            if (image) {
-
-                generateASCII();
-
-            }
-
+            inverted = !inverted;
+            if (image) generateASCII();
         });
 
+        // Update live when user types new characters
+        customCharsInput.addEventListener("input", () => {
+            if (image) generateASCII();
+        });
 
-        /*
-        ========================================
-        BACKGROUND ASCII
-        ========================================
-        */
+        // Ascii Art Generation
+        function generateASCII() {
+            const width = Number(widthSlider.value);
+            const height = Math.floor((image.height / image.width) * width * 0.5);
 
-        const chars =
-            "@%#*+=-:. ";
+            // Setup canvas
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(image, 0, 0, width, height);
 
+            // Process pixels
+            const pixels = ctx.getImageData(0, 0, width, height).data;
+            let result = "";
 
-        const rows =
-            300;
+            // Grab characters from the input field, default to a space if they delete everything to prevent crashes
+            const characters = customCharsInput.value || " ";
 
-        const columns =
-            500;
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const pixelIndex = (y * width + x) * 4;
+                    const r = pixels[pixelIndex];
+                    const g = pixels[pixelIndex + 1];
+                    const b = pixels[pixelIndex + 2];
 
+                    // Calculate brightness
+                    let brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+                    if (inverted) brightness = 255 - brightness;
 
-        let text = "";
-
-
-        for (
-            let row = 0;
-            row < rows;
-            row++
-        ) {
-
-            for (
-                let column = 0;
-                column < columns;
-                column++
-            ) {
-
-                text +=
-                    chars[
-                        Math.floor(
-                            Math.random() *
-                            chars.length
-                        )
-                    ];
-
+                    // Map brightness to a character
+                    const charIndex = Math.floor((brightness / 255) * (characters.length - 1));
+                    result += characters[charIndex];
+                }
+                result += "\n";
             }
 
-            text += "\n";
+            ascii.textContent = result;
 
+            // Scale ASCII to fit container
+            const container = document.querySelector(".ascii-container");
+            const scale = Math.min(
+                container.clientWidth / ascii.scrollWidth,
+                container.clientHeight / ascii.scrollHeight,
+                1
+            );
+            ascii.style.transform = `scale(${scale})`;
         }
 
+        // Random gen for the background
+        function setupBackground() {
+            let text = "";
+            
+            // Grab characters from the input field (check if element exists just in case it runs early)
+            const characters = customCharsInput ? (customCharsInput.value || "LIAM") : "LIAM";
 
-        background.textContent =
-            text;
-
-
-        /*
-        ========================================
-        EXPORT PNG
-        ========================================
-        */
-
-        exportButton.addEventListener("click", () => {
-
-            if (!ascii.textContent.trim()) {
-
-                return;
-
-            }
-
-
-            const lines =
-                ascii.textContent.split("\n");
-
-
-            const fontSize =
-                8;
-
-            const lineHeight =
-                8;
-
-            const padding =
-                20;
-
-
-            const exportCanvas =
-                document.createElement(
-                    "canvas"
-                );
-
-
-            const ctx =
-                exportCanvas.getContext(
-                    "2d"
-                );
-
-
-            ctx.font =
-                `${fontSize}px monospace`;
-
-
-            const textWidth =
-                Math.max(
-                    ...lines.map(
-                        line =>
-                            ctx.measureText(
-                                line
-                            ).width
-                    )
-                );
-
-
-            exportCanvas.width =
-                textWidth +
-                padding * 2;
-
-
-            exportCanvas.height =
-                lines.length *
-                lineHeight +
-                padding * 2;
-
-
-            /*
-            Background
-            */
-
-            ctx.fillStyle =
-                "black";
-
-
-            ctx.fillRect(
-                0,
-                0,
-                exportCanvas.width,
-                exportCanvas.height
-            );
-
-
-            /*
-            ASCII text
-            */
-
-            ctx.fillStyle =
-                "rgb(255, 255, 200)";
-
-
-            ctx.font =
-                `${fontSize}px monospace`;
-
-
-            ctx.textBaseline =
-                "top";
-
-
-            lines.forEach(
-                (line, i) => {
-
-                    ctx.fillText(
-                        line,
-                        padding,
-                        padding +
-                        i * lineHeight
-                    );
-
+            for (let row = 0; row < 300; row++) {
+                for (let col = 0; col < 500; col++) {
+                    const randomChar = characters[Math.floor(Math.random() * characters.length)];
+                    text += randomChar;
                 }
-            );
+                text += "\n";
+            }
+            background.textContent = text;
+        }
+        setupBackground(); // Run once on load
 
+        // Export to png
+        exportButton.addEventListener("click", () => {
+            if (!ascii.textContent.trim()) return;
 
-            /*
-            Download PNG
-            */
+            const lines = ascii.textContent.split("\n");
+            const fontSize = 8;
+            const lineHeight = 8;
+            const padding = 20;
 
-            const link =
-                document.createElement(
-                    "a"
-                );
+            const exportCanvas = document.createElement("canvas");
+            const ctx = exportCanvas.getContext("2d");
+            ctx.font = `${fontSize}px monospace`;
 
+            // Calculate canvas size based on text
+            const textWidth = Math.max(...lines.map(line => ctx.measureText(line).width));
+            exportCanvas.width = textWidth + padding * 2;
+            exportCanvas.height = (lines.length * lineHeight) + padding * 2;
 
-            link.download =
-                "asciier.png";
+            // Draw black background
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
 
+            // Draw ASCII text
+            ctx.fillStyle = "rgb(255, 255, 200)";
+            ctx.font = `${fontSize}px monospace`;
+            ctx.textBaseline = "top";
 
-            link.href =
-                exportCanvas.toDataURL(
-                    "image/png"
-                );
+            lines.forEach((line, i) => {
+                ctx.fillText(line, padding, padding + (i * lineHeight));
+            });
 
-
+            // Trigger download
+            const link = document.createElement("a");
+            link.download = "asciier.png";
+            link.href = exportCanvas.toDataURL("image/png");
             link.click();
-
         });
-
     </script>
 
 </body>
